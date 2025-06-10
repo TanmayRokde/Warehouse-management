@@ -1,181 +1,189 @@
-# 🏬 Warehouse Management System (WMS)
+# 📦 Warehouse Management System (WMS)
 
-This repository is a modular Warehouse Management System designed to streamline SKU mapping, product data management, and analytics with AI-powered querying. It is divided into three main parts:
+A modular, full-stack warehouse management system for SKU/MSKU mapping, data cleaning, querying, and visualization.
 
 ---
 
-## 🧩 Structure
+## 🗂 Folder Structure
 
 ```
 Warehouse-management/
-├── python-tools/      # Python GUI tool for SKU to MSKU mapping (Data Cleaning)
-├── backend/           # Node.js backend with Express and optional Prisma
-└── frontend/          # React.js frontend for visualizations and interaction
+├── python-tools/         # Python GUI for SKU to MSKU mapping
+├── backend/              # Node.js backend API with AI, Baserow integration
+├── frontend/             # React frontend for uploading, querying, charting
+├── docker-compose.yml    # Docker orchestration file
+├── README.md
 ```
 
 ---
 
-## 1️⃣ Python Tools (Data Cleaning GUI)
+## 🧹 python-tools
 
-**Folder:** `python-tools/`
+### Description
+A standalone Tkinter-based GUI tool to:
+- Map SKUs → MSKUs interactively
+- Import/export CSV files
+- Log unmapped SKUs
 
-### 🎯 Purpose:
-- GUI-based interface for mapping **SKUs → MSKUs**
-- Exporting cleaned mapping data to CSV
-- Used as a pre-processing step before backend ingestion
+### Tech Stack
+- Python 3.10+
+- `tkinter`, `pandas`, `csv`, `os`
 
-### 🔧 Features:
-- Load raw sales CSV
-- Map SKUs to MSKUs (auto/manual)
-- Handle combo products
-- Export cleaned CSV for upload
-
-### 📂 Structure:
-```
-python-tools/
-├── core/           # Mapping logic, validators, loaders
-├── gui/            # Tkinter-based GUI
-├── data/           # Sample input/output files
-├── tests/          # Unit tests
-└── run.py          # Entry point to launch the app
-```
-
-### ▶️ Run it:
+### Run Locally
 ```bash
 cd python-tools
+pip install -r requirements.txt
 python run.py
 ```
 
 ---
 
-## 2️⃣ Backend (Node.js API)
+## ⚙️ backend
 
-**Folder:** `backend/`
+### Description
+Handles:
+- CSV uploads
+- SKU/MSKU mapping
+- AI-driven queries
+- Integration with Baserow or NoCodeDB
 
-### 🎯 Purpose:
-- REST API to handle file uploads, mapping logic, and AI-based querying
-- Optional Prisma + PostgreSQL integration
+### Tech Stack
+- Node.js + Express
+- Multer, Axios, csv-parser
+- Optional: Prisma (PostgreSQL), dotenv
 
-### 🔧 Features:
-- Upload cleaned CSVs
-- Re-map SKUs server-side (optional)
-- Run AI-powered natural language queries (e.g. "Show total sales")
-- Metrics calculation and Baserow/NoCodeDB sync
-
-### 📂 Structure:
-```
-backend/
-├── prisma/         # Optional Prisma DB schema
-├── src/
-│   ├── controllers/
-│   ├── services/
-│   ├── models/
-│   ├── routes/
-│   └── utils/
-├── tests/          # Sample test files
-├── package.json
-└── tsconfig.json   # Present but unused
-```
-
-### ▶️ Run it:
+### Run Locally
 ```bash
 cd backend
 npm install
 npm run dev
 ```
 
-> 🔑 Add a `.env` file:
-```env
-PORT=3000
-BASEROW_API_KEY=your_key_here
-DATABASE_URL=postgresql://user:pass@localhost:5432/wms
+### Docker
+```bash
+docker build -t wms-backend ./backend
+docker run -p 3000:3000 wms-backend
 ```
 
 ---
 
-## 3️⃣ Frontend (React.js)
+## 💻 frontend
 
-**Folder:** `frontend/`
+### Description
+React-based UI to:
+- Upload sales data
+- Explore mapping
+- Submit natural language queries
+- View generated charts and metrics
 
-### 🎯 Purpose:
-- Web interface to:
-  - Upload mapping files
-  - Visualize order/product data
-  - Run natural language queries
-  - Display AI-generated metrics and charts
+### Tech Stack
+- React + Vite
+- TailwindCSS
+- Axios, Chart.js/Recharts
 
-### 📂 Structure:
-```
-frontend/
-├── src/
-│   ├── components/
-│   ├── pages/
-│   ├── services/
-│   └── App.jsx, index.js, etc.
-├── public/
-└── package.json
-```
-
-### ▶️ Run it:
+### Run Locally
 ```bash
 cd frontend
 npm install
-npm start
+npm run dev
 ```
 
----
-
-## 🧠 AI Integration
-
-- **Text-to-SQL queries**: Users can ask questions like:
-  - *"What were the total sales last week?"*
-  - *"Show most returned products"*
-- Uses keyword-matching now, can be upgraded to OpenAI/LangChain/DB-GPT
-
----
-
-## 🚀 Roadmap
-
-- [x] SKU → MSKU mapper (GUI)
-- [x] File upload + backend parsing
-- [x] Basic AI query handling
-- [ ] Integrate full database
-- [ ] Advanced charts in frontend
-- [ ] Auth and role-based dashboards
-
----
-
-## 🛠️ Dev Scripts
-
+### Docker
 ```bash
-# Backend
-cd backend && npm run dev
-
-# Frontend
-cd frontend && npm start
-
-# Python GUI
-cd python-tools && python run.py
+docker build -t wms-frontend ./frontend
+docker run -p 5173:5173 wms-frontend
 ```
 
 ---
 
-## 🧪 Tests
+## 🐳 Docker Compose (Monorepo)
 
-```bash
-# Run backend test cases
-cd backend
-npm test
+### `docker-compose.yml`
+```yaml
+version: "3.8"
+services:
+  backend:
+    build: ./backend
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./backend:/app
+    environment:
+      - NODE_ENV=development
+
+  frontend:
+    build: ./frontend
+    ports:
+      - "5173:5173"
+    depends_on:
+      - backend
+    volumes:
+      - ./frontend:/app
 ```
+
+### Run Entire Stack
+```bash
+docker-compose up --build
+```
+
+---
+
+## 📁 Environment Variables
+
+### `backend/src/config/env.js`
+```js
+module.exports = {
+  BASEROW_API_KEY: process.env.BASEROW_API_KEY,
+  DB_URL: process.env.DB_URL,
+};
+```
+
+Create a `.env` file in the backend root:
+
+```
+BASEROW_API_KEY=your_baserow_api_key
+DB_URL=your_database_url
+```
+
+---
+
+## ✅ Features
+
+| Module         | Functionality                                 |
+|----------------|-----------------------------------------------|
+| Python GUI     | Manual SKU ⇄ MSKU mapping                     |
+| Node.js API    | Upload, remap, metrics, AI/NL query support   |
+| React Frontend | Data upload, dashboard, querying, charts      |
+| Docker         | Unified environment across frontend/backend   |
+
+---
+
+## 🧪 Testing
+
+### Backend
+```bash
+npm run test
+```
+
+Basic test coverage for mapping routes and logic.
+
+---
+
+## 🔮 Roadmap
+
+- [ ] Persistent mapping storage (Postgres or Baserow)
+- [ ] AI query → SQL → visualization
+- [ ] Editable frontend tables and logs
+- [ ] Multi-user role-based UI
 
 ---
 
 ## 👨‍💻 Author
 
-Made by [@TanmayRokde](https://github.com/TanmayRokde)
+Built by [Tanmay Rokde](https://github.com/TanmayRokde) – IITian, backend engineer, and full-stack enthusiast.
 
 ---
 
-## 📝 License
+## 🪪 License
 
-This project is MIT licensed.
+MIT © 2025
