@@ -1,0 +1,45 @@
+version: '3.8'
+
+services:
+  backend:
+    build: ./backend
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./backend:/app
+    environment:
+      - NODE_ENV=development
+      - BASEROW_API_KEY=your_api_key
+      - DATABASE_URL=postgresql://user:pass@db:5432/wms
+    depends_on:
+      - db
+
+  frontend:
+    build: ./frontend
+    ports:
+      - "5173:5173"
+    volumes:
+      - ./frontend:/app
+    environment:
+      - REACT_APP_API_URL=http://localhost:3000
+
+  db:
+    image: postgres:15
+    container_name: postgres
+    restart: always
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_USER: user
+      POSTGRES_PASSWORD: pass
+      POSTGRES_DB: wms
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+
+  # GUI tool is excluded from compose due to GUI limitations
+  # Run python-tools manually on host if needed
+
+volumes:
+  pgdata:
+//not needed for now 
+//add according to the need
