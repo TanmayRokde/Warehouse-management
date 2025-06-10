@@ -1,4 +1,5 @@
-const natural = require("natural"); // Optional for keyword extraction
+const natural = require("natural"); 
+
 const { calculateMetrics } = require("./metrics.service");
 
 exports.processQuery = async (query) => {
